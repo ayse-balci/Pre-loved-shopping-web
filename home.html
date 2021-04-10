@@ -1,0 +1,133 @@
+<!----------------------After Post Area-------------->    
+
+<br><br><br>
+
+<div class="text-center bg-light text-dark">
+    <h3>What are you looking for?</h3>
+</div>
+
+
+<hr>
+<br>
+
+<!----------------------After Post Area Ends-------------->    
+
+
+<div class="wrapper">
+    <ul>
+<li>House
+    <ul>
+        <li>Daire
+            <ul>
+                <li>Satilik</li>
+                <li>Kiralik</li>
+            </ul>
+        </li>
+        <li>Mustakil
+            <ul>
+                <li>Satilik</li>
+                <li>Kiralik</li>
+            </ul>
+        </li>
+        <li>Arsa
+            <ul>
+                <li>Satilik</li>
+                <li>Kiralik</li>
+            </ul>
+        </li>
+        <li>Dukkan
+            <ul>
+                <li>Satilik</li>
+                <li>Kiralik</li>
+            </ul>
+        </li>
+    </ul>
+</li>
+<li>Car</li>
+<li>Electronic</li>
+</div>
+
+
+
+<!----------------------After Post Area Ends-------------->    
+
+
+
+<div class="row">
+    <div class="col-sm-12" id="posts">
+
+    </div>
+</div>
+
+<br>
+
+
+
+
+<!----------------------After Post Area Ends-------------->    
+
+
+
+
+
+<!----------------------Validation and uploading of posts-------------->  
+
+<script>
+    //********************************Retrieve and Display Fata From Database*****************************************//
+  
+  
+    var dbPosts = firebase.database().ref().child("Materials"); 
+    
+    dbPosts.on("value", function(posts) 
+    {
+        if (posts.exists())
+        {
+            var postsHTML = "";
+
+            posts.forEach(function(singlePost) 
+            {
+
+                postsHTML += "<div class='jumbotron bg-light text-dark border border-dark'>";
+                
+                    postsHTML += "<div> <img width='400' src='";
+                        postsHTML += singlePost.val().image;
+                    postsHTML += "'/></div> <br>";
+
+                    postsHTML += "<div class='row'>";
+                        postsHTML += "<div class='col-sm-5'> <p style='color:grey;'>" 
+                            + "Published by: " + singlePost.val().nameOfUser
+                            + " </p> </div>" +
+
+                            "<div class='col-sm-5'> <p style='color:grey;'>" 
+                            + "Time: " + singlePost.val().time
+                            + " </p> </div>" +
+
+                            "<div class='col-sm-5'> <p style='color:grey;'>" 
+                            + "Date: " + singlePost.val().date
+                            + " </p> </div>" +
+                            
+                            "<div class='col-sm-5'> <p style='color:grey;'>" 
+                            + "m^2: " + singlePost.val().number_of_floors
+                            + " </p> </div>";
+
+                    postsHTML += "</div> <br>";
+
+                    postsHTML += "<div style='text-align: justify; color: black;'>";
+                        postsHTML += singlePost.val().desc;
+                    postsHTML += "</div> <br>";
+
+               
+                postsHTML += "</div>";
+            });
+
+            $("#posts").html(postsHTML);
+        }
+    });
+
+
+    //********************************Retrieve and Display Fata From Database Ends*****************************************//
+
+
+</script>
+
+<!----------------------Validation and uploading of posts Ends-------------->  

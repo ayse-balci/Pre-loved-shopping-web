@@ -1,0 +1,91 @@
+
+<div class="text-center bg-light text-dark">
+    <h3>My all posts</h3>
+</div>
+
+<hr>
+<br>
+
+<div class="row container-fluid bg-3">
+    <div class="col-sm-12" id="posts">
+
+    </div>
+</div>
+
+<br>
+
+<script>
+    
+    //********************************Retrieve and Display Fata From Database*****************************************//
+  
+    var user = firebase.auth().currentUser;
+    var dbPosts = firebase.database().ref().child("Materials").orderByChild("uid").equalTo(user.uid); 
+    
+    dbPosts.on("value", function(posts) 
+    {
+        if (posts.exists())
+        {
+            var postsHTML = "";
+
+            posts.forEach(function(singlePost) 
+            {
+
+                postsHTML += "<div class='jumbotron bg-light text-dark border border-dark'>";
+                
+                    postsHTML += "<div> <img width='400' src='";
+                        postsHTML += singlePost.val().image;
+                    postsHTML += "'/></div> <br>";
+
+                    postsHTML += "<div class='row'>";
+                        postsHTML += "<div class='col-sm-5'> <p style='color:grey;'>" 
+                            + "Published by: " + singlePost.val().nameOfUser
+                            + " </p> </div>" +
+
+                            "<div class='col-sm-5'> <p style='color:grey;'>" 
+                            + "Time: " + singlePost.val().time
+                            + " </p> </div>" +
+
+                            "<div class='col-sm-5'> <p style='color:grey;'>" 
+                            + "Date: " + singlePost.val().date
+                            + " </p> </div>";
+
+                    postsHTML += "</div> <br>";
+
+                    postsHTML += "<div style='text-align: justify; color: black;'>";
+                        postsHTML += singlePost.val().desc;
+                    postsHTML += "</div> <br>";
+
+                    postsHTML += "<div class='form-group' style='text-align: justify; color: black;'>";
+                        postsHTML +="<button class='form-control btn btn-light bg-dark text-white' onclick=deletePostRecord('" + singlePost.key + "')>Delete Post</button>";
+                    postsHTML += "</div> <br>";
+
+               
+                postsHTML += "</div>";
+            });
+
+            $("#posts").html(postsHTML);
+        }
+    });
+
+    function deletePostRecord(key) 
+    {
+        var deleteRef = firebase.database().ref().child("Materials").child(key);
+
+        return deleteRef.remove()
+        .then(function()
+        {
+            console.log("Removed Successfully.");
+        })
+        .catch(function()
+        {
+            console.log("Error Occured.");
+        });
+    }
+
+
+    //********************************Retrieve and Display Fata From Database Ends*****************************************//
+
+
+</script>
+
+<!----------------------Validation and uploading of posts Ends-------------->  

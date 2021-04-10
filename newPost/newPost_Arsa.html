@@ -1,0 +1,279 @@
+<!------------Post Area-------------->    
+<br><br><br><br>
+<div>
+    <form>
+
+        <div class="form-group">
+          <label for="main-title">İlan basligi</label>
+          <input type="text" class="form-control" id="main-title" placeholder="Please write a title.">
+        </div>
+
+
+        <div class="form-group">
+          <label for="main-desc">Aciklama</label>
+          <input type="text" class="form-control" rows="3" id="main-desc" placeholder="Please write some description.">
+        </div>
+
+
+
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label for="price">Price</label>
+            <input type="text" class="form-control" id="price">
+          </div>
+
+
+          <div class="form-group col-md-4">
+            <label for="type-price">Type Of Money</label>
+            <select id="type-price" class="form-control">
+              <option selected>Choose...</option>
+                <option value="0">$</option>
+                <option value="1">dinar</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="metre-net">m² (net)</label>
+              <input type="email" class="form-control" id="metre-net" placeholder="Email">
+            </div>
+            
+            <div class="form-group col-md-4">
+                <label for="type-price">Type Of Arsa</label>
+                <select id="type-price" class="form-control">
+                  <option selected>Choose...</option>
+                    <option value="0">Tapo</option>
+                    <option value="1">ziraat</option>
+                </select>
+              </div>
+
+          </div>
+      
+
+          
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="inputCity">City</label>
+              <input type="text" class="form-control" id="inputCity">
+            </div>
+            <div class="form-group col-md-4">
+              <label for="inputState">State</label>
+              <select id="inputState" class="form-control">
+                <option selected>Choose...</option>
+                <option>...</option>
+              </select>
+            </div>
+            
+          </div>
+
+          <div class="form-group">
+            <label for="inputAddress">Address</label>
+            <input type="text" class="form-control" id="inputAddress" placeholder="1234 Main St">
+          </div>
+
+
+        <br><br>
+        <div class="form-group"> 
+            <input type="file" class="form-control" id="main-image"/>
+            <div class="invalid-feedback">
+                Please choose a valid picture.
+            </div>
+        </div>
+        <div class="form-group">
+            <img id="selected-image" width="250" height="150" src="#" />
+        </div>
+
+        <div class="form-group">
+            <div class="progress bg-secondary">
+                <div class="progress-bar bg-success" id="upload-progress" style="width: 0%">0%</div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <button id="save-post" type="button" style="width: 150px; height: 60px;" class="btn btn-light bg-light text-dark">Post</button>
+        </div>
+
+
+      </form>
+
+
+
+    <br><br><br><br><br><br>
+
+<!----------------------Post Area Ends-------------->    
+
+
+<!----------------------Validation and uploading of posts-------------->  
+
+<script>
+    var validImagetypes = ["image-gif", "image/jpeg", "image/png", "image/jpg"];
+
+    $("#selected-image").hide();
+
+    function previewImage(image_post) 
+    {
+       if (image_post.files && image_post.files[0])
+       {
+        var reader = new FileReader();
+
+            reader.onload = function(e) {
+                $("#selected-image").attr('src', e.target.result);
+                $("#selected-image").fadeIn;                        
+            }
+
+            reader.readAsDataURL(image_post.files[0]);
+
+            $("#selected-image").show();
+       }
+    }
+
+    $("#main-image").change(function() 
+    {
+        previewImage(this);
+    });
+
+    $("#save-post").click(function() 
+    {
+        $("#main-desc").removeClass("is-invalid");                    
+        $("#main-image").removeClass("is-invalid");
+        $("#main-title").removeClass("is-invalid");
+
+        var desc = $("#main-desc").val();
+        var title = $("#main-title").val();
+        var picture_post = $("#main-image").prop("files")[0];
+
+        if (!desc) 
+        {
+            $("#main-desc").addClass("is-invalid");
+            return;
+        }
+        if (!desc) 
+        {
+            $("#main-title").addClass("is-invalid");
+            return;
+        }
+        if (picture_post == null)
+        {
+            $("#main-image").addClass("is-invalid");
+            return;
+        }
+
+        if ($.inArray(picture_post["type"], validImagetypes) < 0) 
+        {
+            $("#main-image").addClass("is-invalid");
+            return;
+        }
+
+        //*********Upload and Save to Firebase Storage & Database*********//
+
+        var databaseRef = firebase.database().ref().child("Posts");
+
+        databaseRef.once("value").then(function(snapshot) 
+        {
+            var name = picture_post["name"];
+            var dateStr = new Date().getTime();
+            var fileCompleteName = name + "_" + dateStr;
+
+            var storageRef = firebase.storage().ref("Post Images");
+            var blogStorageRef = storageRef.child(fileCompleteName);
+
+            var uploadTask = blogStorageRef.put(picture_post);
+
+            uploadTask.on("state_changed", 
+
+                function progress(snapshot) 
+                {
+                    var percentage = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                
+                    $("#upload-progress").html(Math.round(percentage) + "%");
+                    $("#upload-progress").attr("style", "width:" + percentage + "%");
+                },
+
+                function error(err) 
+                {
+
+                },
+
+                function complete() 
+                {
+                    var user = firebase.auth().currentUser;
+                    var userName;
+                    firebase.database().ref('Users/' + user.uid).once('value').then(function(snapshot) 
+                    {
+                        var fName = (snapshot.val() && snapshot.val().firstName);
+                        var sName = (snapshot.val() && snapshot.val().secondName);
+                   
+                        userName = fName + " " + sName;
+
+                    });
+
+                    uploadTask.snapshot.ref.getDownloadURL().then(function(downloadURL)
+                    {
+                        var time = new Date();
+
+                        var options = {
+                            weekday: "long",
+                            month: "long",
+                            day: "2-digit",
+                            year: "numeric",
+                        };
+
+                        var postData = 
+                        {
+                            "generalType": "House",
+                            "type": "Daire",
+                            "title": title,
+                            "desc" : desc, 
+                            "image" : downloadURL,
+                            "name" : fileCompleteName,
+                            
+                            "uid" : user.uid,
+                            "nameOfUser" : userName,
+                            "time" : time.toLocaleString('en-US', {hour: 'numeric' , minute : 'numeric' ,hour12:true }),
+                            "date" : time.toLocaleDateString('en-US', options),
+                        };
+
+                        var newPostRef = databaseRef.push();
+
+                        newPostRef.set(postData, function(err)
+                        {
+                            if (err) 
+                            {
+                                $("#result").attr("class", "alert alert-danger");
+                                $("#result").html(err.message);
+                                
+                            } else {
+                                $("#result").attr("class", "alert alert-success");
+                                $("#result").html("Post has been uploaded successfully.");
+                            
+                                window.open("", "_self");
+                            }
+                            resetForm();
+                        });
+                    });
+                }
+
+            );
+
+        });
+
+
+
+        //*********Upload and Save to Firebase Storage & Database Ends*********//
+        
+    });
+
+    function resetForm() 
+    {
+        $("#main-form")[0].reset();
+        $("#selected-image").fadeOut("slow");
+        $("#upload-progress").html("Completed");
+         
+    }
+
+
+
+</script>
+
+<!----------------------Validation and uploading of posts Ends-------------->
